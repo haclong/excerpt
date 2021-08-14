@@ -1,0 +1,46 @@
+<?php
+
+declare(strict_types=1) ;
+
+namespace Authentication\Application\Writers ;
+
+use Authentication\Domain\Entities\Token;
+use Laminas\Db\Sql\Expression;
+use Laminas\Db\TableGateway\TableGatewayInterface;
+
+/**
+ * TokenWriter insert and update datas in tmqauth_token
+ * 
+ * @author haclong
+ */
+class TokenWriter
+{
+    public function __construct(TableGatewayInterface $tokenTableGateway)
+    {
+        $this->tokenTable = $tokenTableGateway ;
+    }
+
+    public function saveToken(Token $token)
+    {
+        $data = [
+            'guid' => $token->getGuid(),
+            'datecrea' => $token->getDatecrea()->format('Y-m-d H:i:s'),
+            'identity' => $token->getIdentity(),
+            'expiration' => $token->getExpiration()->format('Y-m-d H:i:s'),
+            'ip' => $token->getIp(),
+            'session' => $token->getSession(),
+        ] ;
+        
+        return $this->tokenTable->insert($data) ;
+    }
+
+
+    public function disableTokenByGuid(Token $token)
+    {
+        $data = [
+            'expiration' => $token->getExpiration()->format('Y-m-d H:i:s'),
+        ] ;
+        
+        return $this->tokenTable->update($data, ['guid' => $token->getGuid()]) ;
+    }
+}
